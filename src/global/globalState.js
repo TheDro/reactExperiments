@@ -1,7 +1,7 @@
 // Based on https://dev.to/yezyilomo/global-state-management-in-react-with-global-variables-and-hooks-state-management-doesn-t-have-to-be-so-hard-2n2c
 // Credit also goes to my mate Fülöp.
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext, createContext } from "react";
 
 
 // 1. Create singletons via createGlobalState()
@@ -50,23 +50,38 @@ function createGlobalState(initState = null) {
 
 
 export default function useGlobalState(globalState) {
-  const [, set] = useState(globalState.get());
-  const state = globalState.get();
+  const [, set] = useState(globalState.get?.());
+  const state = globalState.get?.();
   const reRender = () => set({});
 
   useEffect(() => {
-    globalState.joinReRender(reRender);
+    globalState.joinReRender?.(reRender);
     return () => {
-      globalState.cancelReRender(reRender);
+      globalState.cancelReRender?.(reRender);
     };
   });
 
   function setState(newState) {
-    globalState.set(newState);
+    globalState.set?.(newState);
   }
 
   return [state, setState];
 }
 
 
-export {useGlobalState, createGlobalState}
+function GlobalStateProvider(context) {
+  return context.Provider
+}
+
+function GetSomeState(ctx, globalState) {
+  let context = useContext(ctx)
+  let state = useGlobalState(globalState)
+  // debugger
+  if (!context) {
+    return state
+  } else {
+    return context
+  }
+}
+
+export {useGlobalState, createGlobalState, GlobalStateProvider, GetSomeState}
